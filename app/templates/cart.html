@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='cart.css') }}">
+    <style>
+        
+        body {
+    font-family: 'Roboto', sans-serif;
+    background-image: url('{{ url_for("static", filename="videos/admin image.jpg") }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: #333;
+    position: relative;
+}
+
+/* Overlay to reduce opacity */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9); /* Adjust transparency here */
+    z-index: -1;
+}
+
+        .low-stock {
+            color: red;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+{% extends "home.html" %}
+
+{% block title %}My Cart{% endblock %}
+
+{% block content %}
+<main>
+    {% if not cart_items %}
+        <h2 style="text-align: center; font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;margin-bottom: 20px;">
+            Your Cart is Empty......Add items from our New Collections
+        </h2>
+        <a href="/">
+            <button style="display: inline-block; padding: 10px 20px; background-color: #4285F4; color: white; text-decoration: none; border: none; border-radius: 5px; cursor: pointer; font-family: sans-serif; transition: background-color 0.3s ease, margin 0.3s ease; margin-left: 20px; :hover {background-color: #2962FF; margin-top: 15px; margin-bottom: 25px; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);}"  >Back to Home</button>
+        </a>
+    {% else %}
+    <div class="cart-page">
+        <h1 style="text-align: center; font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; margin-bottom: 20px;">Your Cart products are..</h1>
+
+        <div class="product-header">
+            <div>Image</div>
+            <div>Name</div>
+            <div>Brand</div>
+            <div>Price</div>
+            <div>Rating</div>
+            <div>Quantity</div>
+            <div>Sub Total</div>
+            <!-- <div>Discount</div> -->
+        </div>
+
+        <div class="products">
+            {% for item in cart_items %}
+            <div class="product">
+                {% if item.product.images %}
+            {% if item.product.images|length > 0 %}
+                <img src="{{ url_for('static', filename=item.product.images[0].image_url) }}" alt="{{ item.product.name }}">
+            {% else %}
+                <img src="{{ url_for('static', filename='default_image.jpg') }}" alt="{{ item.product.name }}">
+            {% endif %}
+        {% else %}
+            <img src="{{ url_for('static', filename='default_image.jpg') }}" alt="{{ item.product.name }}">
+        {% endif %}
+                <h2>{{ item.product.name }}</h2>
+                <p>{{ item.product.manufacturer }}</p>
+                <p>₹<span class="product-price">{{ item.product.price }}</span></p>
+                <p>⭐ {{ item.product.avg_rating }}</p>
+                <div>
+                    <label for="quantity-{{ item.id }}">Quantity:</label>
+                    <select id="quantity-{{ item.id }}" class="quantity-dropdown" data-price="{{ item.product.price }}" discount1="{{item.product.discount}}" data-cart-item-id="{{ item.id }}" data-stock="{{ product_stock[item.product.id] }}">
+                        {% for i in range(1, product_stock[item.product.id] + 1) %}
+                            <option value="{{ i }}" {% if i == item.quantity %}selected{% endif %}>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if product_stock[item.product.id] <= 5 %}
+                        <span class="low-stock">Low Stock!</span>
+                    {% endif %}
+                </div>
+                <p>₹<span class="subtotal">{{ item.total_price }}</span></p>
+                <p><span style="display: none;" class="temp">{{item.total_price * (item.product.discount / 100) * item.quantity }}</span></p>
+                <div class="bbuttons">
+                    <form action="/remove_from_cart" method="POST" style="display: inline;">
+                        <input type="hidden" name="cart_item_id" value="{{ item.id }}">
+                        <button type="submit" class="remove-btn">Remove from Cart</button>
+                    </form>
+                    <form action="{{ url_for('main.product_details', product_id=item.product.id) }}" method="GET" style="display: inline;">
+                        <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                        <button type="submit" class="view-btn">View</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-summary" style="margin-top: 20px;">
+            <h2>Free delivery on purchase over ₹3000.</h2>
+            <div class="invoice">
+                <h3>Invoice</h3>
+                <div class="invoice-details">
+                    <span>Subtotal:</span>
+                    <span>₹<span id="invoice-subtotal">0</span></span>
+                </div> 
+                 <div class="invoice-details">
+                    <span>Total Discount:</span>
+                    <span>-₹<span id="d-message">0</span></span>
+                </div>
+                <div class="invoice-details">
+                    <span>Delivery Charges:</span>
+                    <span>₹<span id="invoice-tax">0</span></span>
+                </div>
+                <div></div>
+                <div class="invoice-details">
+                    <span>Grand Total:</span>
+                    <span>₹<span id="invoice-grand-total">0</span></span>
+                </div>
+                <div class="coupon-section" style="margin-bottom: 20px;">
+                    <input type="text" id="coupon-code" placeholder="Enter Coupon Code" style="width: 70%; padding: 5px; margin-top: 10px;">
+                    <button id="apply-coupon" class="appl">Apply</button>
+                    <p id="coupon-message" style="color: green; margin-top: 10px; display: none;">Coupon applied successfully!</p>
+                </div>
+                <a href="{{ url_for('main.checkout') }}" id = "buythis">
+                    <button class="buy-button">Buy Now</button>
+                </a>
+
+                <form id="checkout-form" action="{{ url_for('main.checkout') }}" method="POST" style="display: none;">
+                    <!-- <input type="hidden" name="subtotal" id="checkout-subtotal"> -->
+                    <!-- <input type="hidden" name="discount" id="checkout-discount"> -->
+                    <input type="hidden" name="grand_total" id="checkout-grand-total">
+                    <!-- You can add other hidden fields if needed -->
+                </form>
+
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</main>
+
+<script>
+const quantityDropdowns = document.querySelectorAll('.quantity-dropdown');
+const invoiceSubtotal = document.getElementById('invoice-subtotal');
+const invoiceTax = document.getElementById('invoice-tax');
+const invoiceGrandTotal = document.getElementById('invoice-grand-total');
+const applyCouponButton = document.getElementById('apply-coupon');
+const couponCodeInput = document.getElementById('coupon-code');
+const couponMessage = document.getElementById('coupon-message');
+const dm = document.getElementById('d-message');
+let discount = 0;
+
+
+document.getElementById('buythis').addEventListener('click', function (e) {
+    e.preventDefault();
+    const grandTotal = document.getElementById('invoice-grand-total').textContent;
+
+
+    document.getElementById('checkout-grand-total').value = grandTotal;
+    console.log("Done", grandTotal)
+    document.getElementById('checkout-form').submit();
+})
+
+
+quantityDropdowns.forEach(dropdown => {
+    dropdown.addEventListener('change', event => {
+        // let d = parseFloat(document.getElementById("temp").textContent);
+        const d = parseFloat(event.target.getAttribute('discount1'));
+        console.log("hello",d);
+        const quantity = parseInt(event.target.value);
+        const price = parseFloat(event.target.getAttribute('data-price'));
+        const cartItemId = event.target.getAttribute('data-cart-item-id'); // Get cart item ID from data attribute
+        const stock = parseInt(event.target.getAttribute('data-stock')); // Get stock from data attribute
+        const productElement = event.target.closest('.product');
+        const subtotalElement = productElement.querySelector('.subtotal');
+        const discountElemnt = productElement.querySelector('.temp');
+
+        if(quantity > stock){
+            alert(`Only ${stock} units are available`);
+            event.target.value = stock; //Reset dropdown to max stock
+            return;
+        }
+
+        const newdiscount = ((price * (d / 100)) * quantity);
+        // disc
+        const newSubtotal = quantity * price;
+        console.log(newdiscount, newSubtotal-newdiscount)
+        // dm.innerText = newdiscount.toFixed(2); 
+        //     console.log(dm)
+        discountElemnt.textContent = newdiscount.toFixed(2);
+        subtotalElement.textContent = newSubtotal.toFixed(2);
+
+
+        fetch(`/update_cart_item/${cartItemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ quantity: quantity }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartTotal();
+            } else {
+                console.error("Failed to update cart item:", data.error);
+                // Optionally revert quantity to previous value.  Could store this value before the fetch call.
+                alert(data.error); //Display server error message
+            }
+        })
+        .catch(error => {
+            console.error("Error updating cart item:", error);
+            alert("Network error. Please try again.");
+        });
+    });
+});
+
+applyCouponButton.addEventListener('click', () => {
+    const couponCode = couponCodeInput.value.trim();
+
+    if (couponCode === 'DISCOUNT10') {
+        discount = 0.1; 
+        couponMessage.style.display = 'block';
+        couponMessage.textContent = 'Coupon applied successfully!';
+        couponMessage.style.color = 'green';
+    } else if (couponCode === 'DISCOUNT50') {
+        discount = 0.5; 
+        couponMessage.style.display = 'block';
+        couponMessage.textContent = 'Coupon applied successfully!';
+        couponMessage.style.color = 'green';
+    } else {
+        discount = 0; 
+        couponMessage.style.display = 'block';
+        couponMessage.style.color = 'red';
+        couponMessage.textContent = 'Invalid coupon code.';
+    }
+    updateCartTotal();
+});
+
+function updateCartTotal() {
+    // var d = parseFloat(document.getElementById("temp").textContent);
+    // console.log(d)
+    let total = 0;
+    let dis = 0;
+    document.querySelectorAll('.subtotal').forEach(subtotalElement => {
+        total += parseFloat(subtotalElement.textContent);
+    });
+    document.querySelectorAll('.temp').forEach(discountElemnt => {
+        dis += parseFloat(discountElemnt.textContent);
+    });
+
+    console.log(dis);
+
+    let tax;
+    // dm.textContent = (total * discount).toFixed(2);
+
+    if (total > 3000 || total <= 0) {
+        tax = 0;
+    } else if (total > 2000 && total <= 3000) {
+        tax = 400;
+    } else if (total > 1000 && total <= 2000) {
+        tax = 200;
+    } else if (total > 500 && total <= 1000) {
+        tax = 100;
+    } else {
+        tax = 50;
+    }
+    // dm.innerText = dis.toFixed(2);
+    let gt = total + tax - dis;
+    let disc = gt * discount
+    gt -= disc
+
+    const grandTotal = gt
+
+    dm.innerText = (dis+disc).toFixed(2)
+
+    invoiceSubtotal.textContent = total.toFixed(2);
+    invoiceTax.textContent = tax.toFixed(2);
+    invoiceGrandTotal.textContent = grandTotal.toFixed(2);
+}
+
+updateCartTotal();
+
+</script>
+{% endblock %}
+</body>
+</html>

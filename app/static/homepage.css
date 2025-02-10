@@ -1,0 +1,157 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: rgb(245, 236, 236); /* matches example */
+  color: #333; /* matches example */
+}
+
+main {
+  padding: 20px;
+}
+
+/* Main container for products */
+.products-container {
+  text-align: center;
+}
+
+/* Center the heading */
+.welcome-heading {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333; /* Adjust color as needed */
+}
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 50px;
+  padding: 30px;
+  margin-top: 350px; /* Increased from 20px to 60px */
+}
+
+.product {
+  border: 1px solid #ddd;
+  padding: 30px;
+  text-align: center;
+  border-radius: 50px; /* more rounded corners */
+  background-color: rgba(206, 214, 243, 0.8); /* matches example */
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); /* subtle shadow */
+  position: relative;
+  transition: transform 0.3s ease;
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0.1)
+    ),
+    /* subtle gradient */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); /* noise texture */
+  background-blend-mode: overlay; /* blend the noise with the background */
+}
+
+.product:hover {
+  transform: scale(1.05);
+}
+
+.product img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.product h2 {
+  font-size: 1em;
+  margin: 0.5em 0;
+}
+
+.product p {
+  margin: 0.5em 0;
+}
+
+.product .pricet {
+  justify-content: center;
+  display: flex;
+  gap: 10px;
+}
+
+.product .price {
+  color: green;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin: 5px 0;
+}
+
+.heart-icon {
+  position: absolute;
+  bottom: 50px;
+  right: 10px;
+  font-size: 30px;
+  border: none;
+  cursor: pointer;
+  /* Start white */
+  transition: color 0.3s ease;
+  border-radius: 50%; /* Circle */
+  background-color: rgba(
+    206,
+    214,
+    243,
+    0.155
+  ); /* Add a semi-transparent background to the heart */
+  padding: 5px; /* Add padding for better appearance */
+}
+
+.heart-icon.active {
+  color: red;
+}
+
+.bb {
+  justify-content: center;
+  display: flex;
+  gap: 20px;
+}
+
+.add-to-cart,
+.view-btn,
+.buy-now-btn {
+  /* Style all button types similarly */
+  padding: 8px 20px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.add-to-cart {
+  background-color: #7baed0; /* Green */
+  color: white;
+}
+
+.add-to-cart:hover {
+  background-color: #218838; /* Darker green */
+  transform: scale(1.05);
+}
+
+.view-btn {
+  background-color: #007bff; /* Blue */
+  color: white;
+}
+
+.view-btn:hover {
+  background-color: #0069d9; /* Darker blue */
+  transform: scale(1.05);
+}
+
+.buy-now-btn {
+  /*This button type isn't in your second example, but I kept it from the first*/
+  background-color: #28a745;
+  color: white;
+}
+
+.buy-now-btn:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
